@@ -36,6 +36,7 @@ tuna-config.yml
 *.log
 test-output.txt
 migration-*.sql
+drizzle/
 server/src/database/migrations/*.js
 server/scripts/migrate-*.js
 scripts/migrate-*.js
