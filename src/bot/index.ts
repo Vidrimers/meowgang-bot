@@ -12,6 +12,14 @@ import {
   connectInstagramHandler,
   connectTikTokHandler,
 } from './handlers/accounts.handler.js';
+import {
+  videoReceiveHandler,
+  videoFsmTextHandler,
+  platformToggleHandler,
+  platformConfirmSelectionHandler,
+  videoUploadConfirmHandler,
+  videoUploadCancelHandler,
+} from './handlers/video.handler.js';
 
 const logger = pino({ name: 'bot' });
 
@@ -27,6 +35,16 @@ export function createBot(token: string): Telegraf {
 
   // Команда /start — главное меню
   bot.command('start', startHandler);
+
+  // Приём видеофайлов и документов (для форматов MOV/AVI)
+  bot.on('video', videoReceiveHandler);
+  bot.on('document', videoReceiveHandler);
+
+  // FSM: текстовые сообщения (title → description → tags)
+  bot.on('text', async (ctx, next) => {
+    const handled = await videoFsmTextHandler(ctx);
+    if (!handled) return next();
+  });
 
   // Inline-кнопки главного меню
   bot.action('upload_video', (ctx) => ctx.answerCbQuery());
@@ -62,6 +80,41 @@ export function createBot(token: string): Telegraf {
   bot.action('connect_tiktok', async (ctx) => {
     await ctx.answerCbQuery();
     await connectTikTokHandler(ctx);
+  });
+
+  // Inline-кнопки выбора платформ (FSM)
+  bot.action('platform_youtube', async (ctx) => {
+    await ctx.answerCbQuery();
+    await platformToggleHandler(ctx, 'youtube');
+  });
+  bot.action('platform_instagram', async (ctx) => {
+    await ctx.answerCbQuery();
+    await platformToggleHandler(ctx, 'instagram');
+  });
+  bot.action('platform_tiktok', async (ctx) => {
+    await ctx.answerCbQuery();
+    await platformToggleHandler(ctx, 'tiktok');
+  });
+  bot.action('platform_all', async (ctx) => {
+    await ctx.answerCbQuery();
+    await platformToggleHandler(ctx, 'all');
+  });
+  bot.action('platform_confirm_selection', async (ctx) => {
+    await ctx.answerCbQuery();
+    await platformConfirmSelectionHandler(ctx);
+  });
+
+  // Подтверждение / отмена загрузки
+  bot.action('video_upload_confirm', async (ctx) => {
+    await ctx.answerCbQuery();
+    await videoUploadConfirmHandler(ctx, async (videoId, platforms) => {
+      // TODO (задача 8): поставить задачу в UploadQueue
+      await ctx.reply(`✅ Загрузка поставлена в очередь.\nВидео: ${videoId}\nПлатформы: ${platforms.join(', ')}`);
+    });
+  });
+  bot.action('video_upload_cancel', async (ctx) => {
+    await ctx.answerCbQuery();
+    await videoUploadCancelHandler(ctx);
   });
 
   return bot;
