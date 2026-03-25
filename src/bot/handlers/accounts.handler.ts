@@ -1,15 +1,6 @@
 import type { Context } from 'telegraf';
 import { Markup } from 'telegraf';
-
-/**
- * Формирует OAuth callback URL для платформы.
- * Requirements: 13.3
- */
-function buildCallbackUrl(platform: string): string {
-  const ip = process.env.SERVER_IP;
-  const port = process.env.PORT;
-  return `http://${ip}:${port}/auth/${platform}/callback`;
-}
+import { buildCallbackUrl } from '../../services/oauth.service.js';
 
 /**
  * Формирует OAuth URL для YouTube (Google OAuth 2.0).
