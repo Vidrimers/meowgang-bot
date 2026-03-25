@@ -13,6 +13,7 @@ export async function startHandler(ctx: Context): Promise<void> {
       [Markup.button.callback('📹 Загрузить видео', 'upload_video')],
       [Markup.button.callback('📊 Показать статистику', 'show_stats')],
       [Markup.button.callback('⚙️ Настройки аккаунтов', 'accounts_settings')],
+      [Markup.button.callback('📁 Папка загрузок', 'storage_info')],
     ])
   );
 }

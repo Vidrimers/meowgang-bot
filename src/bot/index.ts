@@ -13,6 +13,10 @@ import {
   connectTikTokHandler,
 } from './handlers/accounts.handler.js';
 import {
+  storageInfoHandler,
+  storageClearHandler,
+} from './handlers/storage.handler.js';
+import {
   videoReceiveHandler,
   videoFsmTextHandler,
   platformToggleHandler,
@@ -65,6 +69,16 @@ export function createBot(token: string, uploadQueue?: Queue<UploadJobData>): Te
   bot.action('back_to_main', async (ctx) => {
     await ctx.answerCbQuery();
     await startHandler(ctx);
+  });
+
+  // Inline-кнопки управления папкой загрузок
+  bot.action('storage_info', async (ctx) => {
+    await ctx.answerCbQuery();
+    await storageInfoHandler(ctx);
+  });
+  bot.action('storage_clear', async (ctx) => {
+    await ctx.answerCbQuery();
+    await storageClearHandler(ctx);
   });
 
   // Inline-кнопки статистики — выбор конкретного видео
