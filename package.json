@@ -1,0 +1,37 @@
+{
+  "name": "video-upload-bot",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsx src/index.ts",
+    "test": "vitest --run",
+    "test:watch": "vitest",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate"
+  },
+  "dependencies": {
+    "telegraf": "^4.16.3",
+    "drizzle-orm": "^0.36.4",
+    "pg": "^8.13.1",
+    "@types/pg": "^8.11.10",
+    "bullmq": "^5.34.8",
+    "fastify": "^5.2.1",
+    "pino": "^9.6.0",
+    "node-cron": "^3.0.3",
+    "dotenv": "^16.4.7",
+    "googleapis": "^144.0.0",
+    "axios": "^1.7.9"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3",
+    "@types/node": "^22.10.5",
+    "@types/node-cron": "^3.0.11",
+    "drizzle-kit": "^0.28.1",
+    "vitest": "^2.1.8",
+    "@vitest/coverage-v8": "^2.1.8",
+    "fast-check": "^3.23.2",
+    "tsx": "^4.19.2"
+  }
+}
