@@ -20,6 +20,12 @@ import {
   videoUploadConfirmHandler,
   videoUploadCancelHandler,
 } from './handlers/video.handler.js';
+import {
+  createUploadQueue,
+  UPLOAD_JOB_OPTIONS,
+} from '../queue/upload.queue.js';
+import type { Queue } from 'bullmq';
+import type { UploadJobData } from '../queue/upload.queue.js';
 
 const logger = pino({ name: 'bot' });
 
@@ -27,7 +33,7 @@ const logger = pino({ name: 'bot' });
  * Создаёт и настраивает экземпляр Telegraf-бота.
  * Подключает middleware авторизации и все обработчики команд/кнопок.
  */
-export function createBot(token: string): Telegraf {
+export function createBot(token: string, uploadQueue?: Queue<UploadJobData>): Telegraf {
   const bot = new Telegraf(token);
 
   // Middleware авторизации — первым в цепочке
@@ -108,8 +114,25 @@ export function createBot(token: string): Telegraf {
   bot.action('video_upload_confirm', async (ctx) => {
     await ctx.answerCbQuery();
     await videoUploadConfirmHandler(ctx, async (videoId, platforms) => {
-      // TODO (задача 8): поставить задачу в UploadQueue
-      await ctx.reply(`✅ Загрузка поставлена в очередь.\nВидео: ${videoId}\nПлатформы: ${platforms.join(', ')}`);
+      if (!uploadQueue) {
+        logger.error('UploadQueue не инициализирована');
+        await ctx.reply('❌ Ошибка: очередь загрузки недоступна.');
+        return;
+      }
+      try {
+        await uploadQueue.add(
+          'uploadVideo',
+          { videoId, platforms },
+          UPLOAD_JOB_OPTIONS
+        );
+        logger.info({ videoId, platforms }, 'Задача добавлена в UploadQueue');
+        await ctx.reply(
+          `✅ Загрузка поставлена в очередь.\nПлатформы: ${platforms.join(', ')}`
+        );
+      } catch (err) {
+        logger.error({ err, videoId }, 'Ошибка постановки задачи в UploadQueue');
+        await ctx.reply('❌ Не удалось поставить задачу в очередь. Попробуйте ещё раз.');
+      }
     });
   });
   bot.action('video_upload_cancel', async (ctx) => {
