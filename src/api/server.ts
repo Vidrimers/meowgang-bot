@@ -1,4 +1,6 @@
 import Fastify from 'fastify';
+import fastifyStatic from '@fastify/static';
+import { resolve } from 'path';
 import type { Telegraf } from 'telegraf';
 import { authRoutes } from './routes/auth.routes.js';
 
@@ -13,6 +15,13 @@ export function createApiServer(bot?: Telegraf) {
 
   // Регистрируем OAuth callback маршруты
   fastify.register(authRoutes, { bot });
+
+  // Отдаём видеофайлы по публичному URL для Instagram API
+  const uploadDir = resolve(process.env.VIDEO_UPLOAD_DIR ?? './temp/videos');
+  fastify.register(fastifyStatic, {
+    root: uploadDir,
+    prefix: '/uploads/',
+  });
 
   return fastify;
 }

@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { createReadStream } from 'fs';
+import { basename } from 'path';
 import pino from 'pino';
 import type { Telegraf } from 'telegraf';
 import { oauthService } from './oauth.service.js';
@@ -55,49 +55,48 @@ export const instagramService = {
       throw err;
     }
 
-    // Шаг 1: загружаем видеофайл и создаём медиа-контейнер
+    // Формируем публичный URL видео через наш сервер
+    const serverUrl = process.env.SERVER_URL ?? `http://${process.env.SERVER_IP}:${process.env.PORT}`;
+    const filename = basename(videoPath);
+    const videoUrl = `${serverUrl}/uploads/${filename}`;
+
+    // Шаг 1: создаём медиа-контейнер с video_url
     let containerId: string;
     try {
-      const formData = new FormData();
-      formData.append('media_type', 'REELS');
-      formData.append('caption', caption);
-      formData.append('video_url', ''); // будет заменено на upload через form-data
-      formData.append('access_token', accessToken);
-
-      // Instagram требует публично доступный URL для видео.
-      // Используем resumable upload через /media с video_url или прямую загрузку.
-      // Для прямой загрузки используем upload session.
-      const uploadSessionResponse = await axios.post<{ id: string; upload_url: string }>(
+      const response = await axios.post<{ id: string }>(
         `${GRAPH_API_BASE}/${igUserId}/media`,
         null,
         {
           params: {
             media_type: 'REELS',
+            video_url: videoUrl,
             caption,
             access_token: accessToken,
-            upload_type: 'resumable',
           },
         }
       );
-
-      const uploadUrl = uploadSessionResponse.data.upload_url;
-      containerId = uploadSessionResponse.data.id;
-
-      // Загружаем видеофайл по upload_url
-      const videoStream = createReadStream(videoPath);
-      await axios.post(uploadUrl, videoStream, {
-        headers: {
-          Authorization: `OAuth ${accessToken}`,
-          offset: '0',
-          file_size: '0', // Instagram вычислит сам
-          'Content-Type': 'application/octet-stream',
-        },
-      });
-
-      logger.info({ containerId }, 'Медиа-контейнер Instagram создан, видео загружено');
+      containerId = response.data.id;
+      logger.info({ containerId, videoUrl }, 'Медиа-контейнер Instagram создан');
     } catch (err) {
       logger.error({ err, videoPath }, 'Ошибка создания медиа-контейнера Instagram');
       throw err;
+    }
+
+    // Ждём пока Instagram обработает видео (polling статуса)
+    let attempts = 0;
+    while (attempts < 10) {
+      await new Promise(r => setTimeout(r, 5000));
+      try {
+        const statusRes = await axios.get<{ status_code: string }>(`${GRAPH_API_BASE}/${containerId}`, {
+          params: { fields: 'status_code', access_token: accessToken },
+        });
+        if (statusRes.data.status_code === 'FINISHED') break;
+        if (statusRes.data.status_code === 'ERROR') throw new Error('Instagram отклонил видео при обработке');
+      } catch (err) {
+        logger.error({ err, containerId }, 'Ошибка проверки статуса контейнера Instagram');
+        throw err;
+      }
+      attempts++;
     }
 
     // Шаг 2: публикуем контейнер через /media_publish

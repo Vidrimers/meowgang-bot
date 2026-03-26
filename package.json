@@ -13,6 +13,7 @@
     "db:migrate": "drizzle-kit migrate"
   },
   "dependencies": {
+    "@fastify/static": "^9.0.0",
     "@types/pg": "^8.11.10",
     "axios": "^1.7.9",
     "bullmq": "^5.34.8",
