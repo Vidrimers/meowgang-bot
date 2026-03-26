@@ -15,11 +15,16 @@ interface PlatformConfig {
 }
 
 /**
- * Формирует OAuth callback URL из переданных ip/port.
- * Чистая функция — удобна для тестирования.
+ * Формирует OAuth callback URL из переменных окружения.
+ * Если задан SERVER_URL — использует его напрямую.
+ * Иначе формирует из SERVER_IP и PORT.
  * Requirements: 13.3
  */
 export function buildCallbackUrl(platform: Platform, ip?: string, port?: string): string {
+  const serverUrl = process.env.SERVER_URL;
+  if (serverUrl) {
+    return `${serverUrl}/auth/${platform}/callback`;
+  }
   const resolvedIp = ip ?? process.env.SERVER_IP;
   const resolvedPort = port ?? process.env.PORT;
   return `http://${resolvedIp}:${resolvedPort}/auth/${platform}/callback`;
