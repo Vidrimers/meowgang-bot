@@ -61,7 +61,10 @@ export function createBot(token: string, uploadQueue?: Queue<UploadJobData>): Te
   });
 
   // Inline-кнопки главного меню
-  bot.action('upload_video', (ctx) => ctx.answerCbQuery());
+  bot.action('upload_video', async (ctx) => {
+    await ctx.answerCbQuery();
+    await ctx.reply('📎 Отправьте видеофайл (MP4, MOV, AVI) прямо в этот чат.');
+  });
   bot.action('show_stats', async (ctx) => {
     await ctx.answerCbQuery();
     await statsMenuHandler(ctx);
