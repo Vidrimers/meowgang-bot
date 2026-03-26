@@ -117,13 +117,23 @@ SERVER_URL=https://твой-домен.com
 ### Instagram (Meta for Developers)
 
 1. Зайди на [developers.facebook.com](https://developers.facebook.com)
-2. My Apps → Create App → Business
-3. Добавь продукт **Instagram Graph API**
-4. App Settings → Basic → скопируй App ID и App Secret
-5. Instagram → Settings → добавь redirect URI: `https://твой-домен.com/auth/instagram/callback`
-6. Запроси разрешения: `instagram_basic`, `instagram_content_publish`
+2. My Apps → Create App → выбери тип **Business**
+3. Панель → "Добавить сценарии использования" → найди **"Управление сообщениями и контентом в Instagram"** → добавь
+4. Настройки приложения → Основное:
+   - Заполни **URL Политики конфиденциальности** (например `https://твой-домен.com/privacy`)
+   - Выбери **Категорию**
+   - Сохрани изменения
+5. Сценарии использования → Настройка → пункт **"Настройте вход в Instagram от имени компании"** → нажми "Настроить" → добавь redirect URI: `https://твой-домен.com/auth/instagram/callback`
+6. Роли в приложении → Роли → добавь свой Instagram аккаунт как **Тестировщик Instagram** → прими приглашение в Instagram (Настройки → Приложения и сайты)
+7. В настройках приложения скопируй **ID приложения Instagram** (не Facebook App ID!) и **Секрет приложения Instagram** в `.env`:
+   ```
+   INSTAGRAM_CLIENT_ID=ID_приложения_Instagram
+   INSTAGRAM_CLIENT_SECRET=секрет_приложения
+   ```
 
-**Важно:** нужен Instagram Professional аккаунт (Creator или Business), привязанный к Facebook странице.
+**Важно:** нужен Instagram Professional аккаунт (Business, не Creator). Переключить: Настройки Instagram → Аккаунт → Переключиться на профессиональный аккаунт → Business. Привязка к Facebook странице не обязательна для тестирования.
+
+**Важно:** `INSTAGRAM_CLIENT_ID` — это именно **ID приложения Instagram** из раздела "Настройка API для входа в Instagram", а не общий Facebook App ID. Они разные.
 
 ### TikTok (TikTok for Developers)
 
