@@ -1,7 +1,7 @@
 import { Telegraf } from 'telegraf';
 import pino from 'pino';
 import { adminOnly } from './middleware/auth.middleware.js';
-import { startHandler } from './handlers/start.handler.js';
+import { startHandler, showMainMenu } from './handlers/start.handler.js';
 import {
   statsMenuHandler,
   videoStatsHandler,
@@ -46,6 +46,9 @@ export function createBot(token: string, uploadQueue?: Queue<UploadJobData>): Te
   // Команда /start — главное меню
   bot.command('start', startHandler);
 
+  // Команда /menu — показать inline-меню (видна в кнопке ☰)
+  bot.command('menu', showMainMenu);
+
   // Приём видеофайлов и документов (для форматов MOV/AVI)
   bot.on('video', videoReceiveHandler);
   bot.on('document', videoReceiveHandler);
@@ -68,7 +71,7 @@ export function createBot(token: string, uploadQueue?: Queue<UploadJobData>): Te
   });
   bot.action('back_to_main', async (ctx) => {
     await ctx.answerCbQuery();
-    await startHandler(ctx);
+    await showMainMenu(ctx);
   });
 
   // Inline-кнопки управления папкой загрузок
@@ -153,6 +156,12 @@ export function createBot(token: string, uploadQueue?: Queue<UploadJobData>): Te
     await ctx.answerCbQuery();
     await videoUploadCancelHandler(ctx);
   });
+
+  // Регистрируем команды — они появятся в кнопке ☰ у поля ввода
+  bot.telegram.setMyCommands([
+    { command: 'menu', description: '📋 Главное меню' },
+    { command: 'start', description: '🚀 Запустить бота' },
+  ]);
 
   return bot;
 }

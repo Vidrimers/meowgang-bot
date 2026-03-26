@@ -18,6 +18,7 @@ const logger = pino({ name: 'upload-worker' });
  */
 export function createUploadWorker(redisUrl: string, bot: Telegraf): Worker<UploadJobData> {
   const url = new URL(redisUrl);
+  const isTls = url.protocol === 'rediss:';
   const adminId = process.env.TELEGRAM_ADMIN_ID;
 
   const worker = new Worker<UploadJobData>(
@@ -86,7 +87,8 @@ export function createUploadWorker(redisUrl: string, bot: Telegraf): Worker<Uplo
       connection: {
         host: url.hostname,
         port: Number(url.port) || 6379,
-        password: url.password || undefined,
+        password: url.password ? decodeURIComponent(url.password) : undefined,
+        tls: isTls ? {} : undefined,
       },
     }
   );

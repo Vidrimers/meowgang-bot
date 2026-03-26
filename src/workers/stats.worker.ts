@@ -16,6 +16,7 @@ const logger = pino({ name: 'stats-worker' });
  */
 export function createStatsWorker(redisUrl: string): Worker<StatsJobData> {
   const url = new URL(redisUrl);
+  const isTls = url.protocol === 'rediss:';
 
   const worker = new Worker<StatsJobData>(
     'fetchStats',
@@ -68,7 +69,8 @@ export function createStatsWorker(redisUrl: string): Worker<StatsJobData> {
       connection: {
         host: url.hostname,
         port: Number(url.port) || 6379,
-        password: url.password || undefined,
+        password: url.password ? decodeURIComponent(url.password) : undefined,
+        tls: isTls ? {} : undefined,
       },
     }
   );

@@ -25,11 +25,13 @@ export const UPLOAD_JOB_OPTIONS: JobsOptions = {
  */
 export function createUploadQueue(redisUrl: string): Queue<UploadJobData> {
   const url = new URL(redisUrl);
+  const isTls = url.protocol === 'rediss:';
   return new Queue<UploadJobData>('uploadVideo', {
     connection: {
       host: url.hostname,
       port: Number(url.port) || 6379,
-      password: url.password || undefined,
+      password: url.password ? decodeURIComponent(url.password) : undefined,
+      tls: isTls ? {} : undefined,
     },
   });
 }

@@ -5,7 +5,7 @@
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
-    "dev": "tsx src/index.ts",
+    "dev": "tsx --watch src/index.ts",
     "devtun": "tuna http 3000 --subdomain=meowgang",
     "test": "vitest --run",
     "test:watch": "vitest",
