@@ -73,12 +73,65 @@ npm start
 
 Callback URL для каждой платформы:
 ```
-http://{SERVER_IP}:{PORT}/auth/youtube/callback
-http://{SERVER_IP}:{PORT}/auth/instagram/callback
-http://{SERVER_IP}:{PORT}/auth/tiktok/callback
+https://твой-домен.com/auth/youtube/callback
+https://твой-домен.com/auth/instagram/callback
+https://твой-домен.com/auth/tiktok/callback
 ```
 
 Эти URL нужно добавить в настройки OAuth-приложений на соответствующих платформах.
+
+### Требования к домену
+
+Google, Meta и TikTok не принимают голые IP-адреса в redirect URI — нужен домен. Если у тебя есть домен с nginx, добавь проксирование `/auth/` на порт бота:
+
+```nginx
+location /auth/ {
+    proxy_pass http://localhost:4198;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+}
+```
+
+После этого в `.env` укажи:
+```
+SERVER_URL=https://твой-домен.com
+```
+
+### YouTube (Google Cloud Console)
+
+1. Зайди на [console.cloud.google.com](https://console.cloud.google.com)
+2. Создай новый проект
+3. APIs & Services → Enable APIs → найди **YouTube Data API v3** → Enable
+4. APIs & Services → Credentials → Create Credentials → **OAuth client ID**
+5. Сначала настрой **OAuth consent screen**: выбери External, заполни название и email
+6. Application type: **Web application**
+7. Authorized redirect URIs: `https://твой-домен.com/auth/youtube/callback`
+8. Скопируй Client ID и Client Secret в `.env`
+
+**Важно:** пока приложение в статусе Testing, нужно добавить свой Google аккаунт как тестового пользователя:
+- OAuth consent screen → **Audience** → Test users → Add users → добавь свой Gmail
+
+### Instagram (Meta for Developers)
+
+1. Зайди на [developers.facebook.com](https://developers.facebook.com)
+2. My Apps → Create App → Business
+3. Добавь продукт **Instagram Graph API**
+4. App Settings → Basic → скопируй App ID и App Secret
+5. Instagram → Settings → добавь redirect URI: `https://твой-домен.com/auth/instagram/callback`
+6. Запроси разрешения: `instagram_basic`, `instagram_content_publish`
+
+**Важно:** нужен Instagram Professional аккаунт (Creator или Business), привязанный к Facebook странице.
+
+### TikTok (TikTok for Developers)
+
+1. Зайди на [developers.tiktok.com](https://developers.tiktok.com)
+2. Manage Apps → Create App
+3. Products → Login Kit → добавь redirect URI: `https://твой-домен.com/auth/tiktok/callback`
+4. Products → Content Posting API → подай заявку на доступ (рассматривается несколько дней)
+5. Скопируй Client Key и Client Secret из App Detail
 
 ## Тесты
 
