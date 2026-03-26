@@ -87,11 +87,14 @@ export const instagramService = {
     while (attempts < 10) {
       await new Promise(r => setTimeout(r, 5000));
       try {
-        const statusRes = await axios.get<{ status_code: string }>(`${GRAPH_API_BASE}/${containerId}`, {
-          params: { fields: 'status_code', access_token: accessToken },
+        const statusRes = await axios.get<{ status_code: string; status?: string }>(`${GRAPH_API_BASE}/${containerId}`, {
+          params: { fields: 'status_code,status', access_token: accessToken },
         });
+        logger.info({ containerId, status_code: statusRes.data.status_code, status: statusRes.data.status }, 'Статус контейнера Instagram');
         if (statusRes.data.status_code === 'FINISHED') break;
-        if (statusRes.data.status_code === 'ERROR') throw new Error('Instagram отклонил видео при обработке');
+        if (statusRes.data.status_code === 'ERROR') {
+          throw new Error(`Instagram отклонил видео: ${statusRes.data.status ?? 'неизвестная причина'}`);
+        }
       } catch (err) {
         logger.error({ err, containerId }, 'Ошибка проверки статуса контейнера Instagram');
         throw err;
