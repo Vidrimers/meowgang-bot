@@ -58,7 +58,7 @@ export const instagramService = {
     // Формируем публичный URL видео через наш сервер
     const serverUrl = process.env.SERVER_URL ?? `http://${process.env.SERVER_IP}:${process.env.PORT}`;
     const filename = basename(videoPath);
-    const videoUrl = `${serverUrl}/uploads/${filename}`;
+    const videoUrl = `${serverUrl}/auth/video/${filename}`;
 
     // Шаг 1: создаём медиа-контейнер с video_url
     let containerId: string;

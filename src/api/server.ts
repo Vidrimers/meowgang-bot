@@ -1,6 +1,6 @@
 import Fastify from 'fastify';
-import fastifyStatic from '@fastify/static';
-import { resolve } from 'path';
+import { createReadStream, existsSync } from 'fs';
+import { resolve, join, basename } from 'path';
 import type { Telegraf } from 'telegraf';
 import { authRoutes } from './routes/auth.routes.js';
 
@@ -16,11 +16,16 @@ export function createApiServer(bot?: Telegraf) {
   // Регистрируем OAuth callback маршруты
   fastify.register(authRoutes, { bot });
 
-  // Отдаём видеофайлы по публичному URL для Instagram API
+  // Отдаём видеофайлы для Instagram API через /auth/video/:filename
   const uploadDir = resolve(process.env.VIDEO_UPLOAD_DIR ?? './temp/videos');
-  fastify.register(fastifyStatic, {
-    root: uploadDir,
-    prefix: '/uploads/',
+  fastify.get<{ Params: { filename: string } }>('/auth/video/:filename', async (request, reply) => {
+    const filename = basename(request.params.filename); // защита от path traversal
+    const filePath = join(uploadDir, filename);
+    if (!existsSync(filePath)) {
+      return reply.code(404).send({ error: 'Not found' });
+    }
+    reply.header('Content-Type', 'video/mp4');
+    return reply.send(createReadStream(filePath));
   });
 
   return fastify;
