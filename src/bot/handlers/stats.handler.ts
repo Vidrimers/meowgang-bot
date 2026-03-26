@@ -50,7 +50,7 @@ export async function statsMenuHandler(ctx: Context): Promise<void> {
     return;
   }
 
-  const recentVideos = await videoRepository.findRecentByUserId(user.id, 10);
+  const recentVideos = await videoRepository.findRecentWithPostsByUserId(user.id, 10);
 
   if (recentVideos.length === 0) {
     await ctx.reply(

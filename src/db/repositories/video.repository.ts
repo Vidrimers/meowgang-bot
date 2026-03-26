@@ -1,6 +1,6 @@
-import { eq, desc } from 'drizzle-orm';
+import { eq, desc, inArray } from 'drizzle-orm';
 import { db } from '../index.js';
-import { videos, type Video, type NewVideo } from '../schema.js';
+import { videos, posts, type Video, type NewVideo } from '../schema.js';
 
 export const videoRepository = {
   // Найти видео по ID
@@ -45,5 +45,25 @@ export const videoRepository = {
   // Удалить видео
   async deleteById(id: string): Promise<void> {
     await db.delete(videos).where(eq(videos.id, id));
+  },
+
+  // Получить последние N видео пользователя у которых есть хотя бы один Post
+  async findRecentWithPostsByUserId(userId: string, limit = 10): Promise<Video[]> {
+    // Получаем ID видео у которых есть посты
+    const videoIdsWithPosts = await db
+      .selectDistinct({ videoId: posts.videoId })
+      .from(posts)
+      .innerJoin(videos, eq(posts.videoId, videos.id))
+      .where(eq(videos.userId, userId));
+
+    if (videoIdsWithPosts.length === 0) return [];
+
+    const ids = videoIdsWithPosts.map(r => r.videoId);
+    return db
+      .select()
+      .from(videos)
+      .where(inArray(videos.id, ids))
+      .orderBy(desc(videos.createdAt))
+      .limit(limit);
   },
 };

@@ -58,7 +58,11 @@ export async function storageInfoHandler(ctx: Context): Promise<void> {
       lines.join('\n') +
       `\n\n📦 Итого: ${formatSize(totalBytes)} (${lines.length} файл(ов))`;
 
-    await ctx.editMessageText(text, { parse_mode: 'Markdown', ...storageMenu });
+    try {
+      await ctx.editMessageText(text, { parse_mode: 'Markdown', ...storageMenu });
+    } catch {
+      await ctx.reply(text, { parse_mode: 'Markdown', ...storageMenu });
+    }
   } catch (err) {
     logger.error({ err }, 'Ошибка при чтении папки загрузок');
     await ctx.reply('❌ Не удалось прочитать папку загрузок.');
@@ -89,10 +93,11 @@ export async function storageClearHandler(ctx: Context): Promise<void> {
     }
 
     logger.info({ deleted }, 'Папка загрузок очищена');
-    await ctx.editMessageText(
-      `🗑 Папка очищена. Удалено файлов: ${deleted}.`,
-      storageMenu
-    );
+    try {
+      await ctx.editMessageText(`🗑 Папка очищена. Удалено файлов: ${deleted}.`, storageMenu);
+    } catch {
+      await ctx.reply(`🗑 Папка очищена. Удалено файлов: ${deleted}.`, storageMenu);
+    }
   } catch (err) {
     logger.error({ err }, 'Ошибка при очистке папки загрузок');
     await ctx.reply('❌ Не удалось очистить папку загрузок.');
