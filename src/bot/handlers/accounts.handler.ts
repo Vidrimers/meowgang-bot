@@ -16,8 +16,8 @@ function buildYouTubeAuthUrl(): string {
 function buildInstagramAuthUrl(): string {
   const clientId = process.env.INSTAGRAM_CLIENT_ID;
   const redirectUri = encodeURIComponent(buildCallbackUrl('instagram'));
-  const scope = encodeURIComponent('instagram_basic,instagram_content_publish');
-  return `https://api.instagram.com/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}&response_type=code`;
+  const scope = encodeURIComponent('instagram_business_basic,instagram_business_content_publish');
+  return `https://www.instagram.com/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}&response_type=code`;
 }
 
 function buildTikTokAuthUrl(): string {
