@@ -122,7 +122,25 @@ export const oauthService = {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     });
 
-    const { access_token, refresh_token, expires_in, open_id, user_id } = response.data;
+    let { access_token, refresh_token, expires_in } = response.data;
+    const { open_id, user_id } = response.data;
+
+    // Instagram: обмениваем короткоживущий токен на долгоживущий (60 дней)
+    if (platform === 'instagram') {
+      const longLivedRes = await axios.get<{
+        access_token: string;
+        token_type: string;
+        expires_in: number;
+      }>('https://graph.instagram.com/access_token', {
+        params: {
+          grant_type: 'ig_exchange_token',
+          client_secret: cfg.clientSecret,
+          access_token,
+        },
+      });
+      access_token = longLivedRes.data.access_token;
+      expires_in = longLivedRes.data.expires_in;
+    }
 
     const expiresAt = new Date(Date.now() + (expires_in ?? 3600) * 1000);
     const platformUserId = open_id ?? user_id ?? 'unknown';
@@ -161,31 +179,52 @@ export const oauthService = {
     const cfg = getPlatformConfig(platform);
     const currentRefreshToken = decrypt(account.refreshToken);
 
-    const params = new URLSearchParams({
-      client_id: cfg.clientId,
-      client_secret: cfg.clientSecret,
-      refresh_token: currentRefreshToken,
-      grant_type: 'refresh_token',
-    });
+    let newAccessToken: string;
+    let newRefreshToken: string;
+    let newExpiresAt: Date;
 
-    const response = await axios.post<{
-      access_token: string;
-      refresh_token?: string;
-      expires_in?: number;
-    }>(cfg.tokenUrl, params.toString(), {
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    });
+    if (platform === 'instagram') {
+      // Instagram: обновляем долгоживущий токен через graph.instagram.com
+      const response = await axios.get<{
+        access_token: string;
+        expires_in: number;
+      }>('https://graph.instagram.com/refresh_access_token', {
+        params: {
+          grant_type: 'ig_refresh_token',
+          access_token: decrypt(account.accessToken),
+        },
+      });
+      newAccessToken = response.data.access_token;
+      newRefreshToken = newAccessToken; // Instagram не возвращает отдельный refresh_token
+      newExpiresAt = new Date(Date.now() + response.data.expires_in * 1000);
+    } else {
+      const params = new URLSearchParams({
+        client_id: cfg.clientId,
+        client_secret: cfg.clientSecret,
+        refresh_token: currentRefreshToken,
+        grant_type: 'refresh_token',
+      });
 
-    const { access_token, refresh_token, expires_in } = response.data;
-    const newExpiresAt = new Date(Date.now() + (expires_in ?? 3600) * 1000);
+      const response = await axios.post<{
+        access_token: string;
+        refresh_token?: string;
+        expires_in?: number;
+      }>(cfg.tokenUrl, params.toString(), {
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      });
+
+      newAccessToken = response.data.access_token;
+      newRefreshToken = response.data.refresh_token ?? currentRefreshToken;
+      newExpiresAt = new Date(Date.now() + (response.data.expires_in ?? 3600) * 1000);
+    }
 
     await socialAccountRepository.updateTokens(
       account.id,
-      encrypt(access_token),
-      encrypt(refresh_token ?? currentRefreshToken),
+      encrypt(newAccessToken),
+      encrypt(newRefreshToken),
       newExpiresAt
     );
 
-    return access_token;
+    return newAccessToken;
   },
 };
