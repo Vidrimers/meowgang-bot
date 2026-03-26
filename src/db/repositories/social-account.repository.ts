@@ -55,4 +55,11 @@ export const socialAccountRepository = {
   async deleteById(id: string): Promise<void> {
     await db.delete(socialAccounts).where(eq(socialAccounts.id, id));
   },
+
+  // Удалить аккаунт по userId и платформе
+  async deleteByUserAndPlatform(userId: string, platform: Platform): Promise<void> {
+    await db.delete(socialAccounts).where(
+      and(eq(socialAccounts.userId, userId), eq(socialAccounts.platform, platform))
+    );
+  },
 };

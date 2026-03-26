@@ -11,6 +11,7 @@ import {
   connectYouTubeHandler,
   connectInstagramHandler,
   connectTikTokHandler,
+  disconnectPlatformHandler,
 } from './handlers/accounts.handler.js';
 import {
   storageInfoHandler,
@@ -103,6 +104,20 @@ export function createBot(token: string, uploadQueue?: Queue<UploadJobData>): Te
   bot.action('connect_tiktok', async (ctx) => {
     await ctx.answerCbQuery();
     await connectTikTokHandler(ctx);
+  });
+
+  // Inline-кнопки отключения аккаунтов
+  bot.action('disconnect_youtube', async (ctx) => {
+    await ctx.answerCbQuery();
+    await disconnectPlatformHandler(ctx, 'youtube');
+  });
+  bot.action('disconnect_instagram', async (ctx) => {
+    await ctx.answerCbQuery();
+    await disconnectPlatformHandler(ctx, 'instagram');
+  });
+  bot.action('disconnect_tiktok', async (ctx) => {
+    await ctx.answerCbQuery();
+    await disconnectPlatformHandler(ctx, 'tiktok');
   });
 
   // Inline-кнопки выбора платформ (FSM)

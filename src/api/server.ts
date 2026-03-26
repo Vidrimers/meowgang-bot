@@ -1,17 +1,18 @@
 import Fastify from 'fastify';
+import type { Telegraf } from 'telegraf';
 import { authRoutes } from './routes/auth.routes.js';
 
 /**
  * Создаёт и настраивает Fastify-сервер.
  * Requirements: 5.8, 13.1
  */
-export function createApiServer() {
+export function createApiServer(bot?: Telegraf) {
   const fastify = Fastify({
     logger: true,
   });
 
   // Регистрируем OAuth callback маршруты
-  fastify.register(authRoutes);
+  fastify.register(authRoutes, { bot });
 
   return fastify;
 }

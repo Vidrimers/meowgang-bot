@@ -22,16 +22,16 @@ async function main() {
   const statsQueue = createStatsQueue(config.redisUrl);
   logger.info('Очереди BullMQ инициализированы');
 
-  // --- Запускаем ApiServer (Fastify) ---
-  const apiServer = createApiServer();
-  const port = Number(config.port ?? 3000);
-  await apiServer.listen({ port, host: '0.0.0.0' });
-  logger.info({ port }, 'ApiServer запущен');
-
   // --- Создаём и запускаем Bot (Telegraf) ---
   const bot = createBot(config.telegramBotToken, uploadQueue);
   bot.launch();
   logger.info('Telegraf Bot запущен');
+
+  // --- Запускаем ApiServer (Fastify) ---
+  const apiServer = createApiServer(bot);
+  const port = Number(config.port ?? 3000);
+  await apiServer.listen({ port, host: '0.0.0.0' });
+  logger.info({ port }, 'ApiServer запущен');
 
   // --- Запускаем UploadWorker ---
   const uploadWorker = createUploadWorker(config.redisUrl, bot);
