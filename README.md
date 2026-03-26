@@ -128,10 +128,18 @@ SERVER_URL=https://твой-домен.com
 ### TikTok (TikTok for Developers)
 
 1. Зайди на [developers.tiktok.com](https://developers.tiktok.com)
-2. Manage Apps → Create App
-3. Products → Login Kit → добавь redirect URI: `https://твой-домен.com/auth/tiktok/callback`
-4. Products → Content Posting API → подай заявку на доступ (рассматривается несколько дней)
-5. Скопируй Client Key и Client Secret из App Detail
+2. Для входа нужен TikTok аккаунт с email — если логинился через Google, добавь email в приложении TikTok: Профиль → Управление аккаунтом → Добавить email
+3. Manage Apps → Create App → выбери **Individual**
+4. Заполни обязательные поля: App icon (любое фото 1024x1024), App name, Category, Description, Terms of Service URL, Privacy Policy URL (можно указать свой домен)
+5. Platform → выбери **Web**, укажи свой домен → нажми **Verify URL properties** → Domain → введи домен → добавь TXT запись в DNS
+6. Products → добавь **Login Kit** и **Content Posting API**
+7. В Login Kit → Redirect URI → Web → добавь: `https://твой-домен.com/auth/tiktok/callback`
+8. В Content Posting API → включи **Direct Post** (иначе видео будет загружаться как черновик)
+9. Scopes → добавь `video.upload`, `video.publish`, `user.info.stats`
+10. App review → заполни описание интеграции и загрузи демо-видео → Submit for review
+11. После одобрения (несколько рабочих дней) скопируй **Client Key** и **Client Secret** в `.env`
+
+**Важно:** без одобрения App Review публикация видео через API работать не будет.
 
 ## Тесты
 
