@@ -5,6 +5,7 @@ import { startHandler, showMainMenu } from './handlers/start.handler.js';
 import {
   statsMenuHandler,
   videoStatsHandler,
+  deleteVideoStatsHandler,
 } from './handlers/stats.handler.js';
 import {
   accountsMenuHandler,
@@ -93,6 +94,13 @@ export function createBot(token: string, uploadQueue?: Queue<UploadJobData>): Te
     await ctx.answerCbQuery();
     const videoId = (ctx.match as RegExpMatchArray)[1];
     await videoStatsHandler(ctx, videoId);
+  });
+
+  // Удаление видео из статистики
+  bot.action(/^delete_video_stats:(.+)$/, async (ctx) => {
+    await ctx.answerCbQuery();
+    const videoId = (ctx.match as RegExpMatchArray)[1];
+    await deleteVideoStatsHandler(ctx, videoId);
   });
 
   // Inline-кнопки подключения аккаунтов

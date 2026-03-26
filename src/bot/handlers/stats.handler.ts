@@ -76,9 +76,20 @@ export async function statsMenuHandler(ctx: Context): Promise<void> {
 }
 
 /**
- * Обработчик выбора конкретного видео — детальная статистика.
- * Requirements: 10.3
+ * Удаляет все Post для видео из БД (когда видео удалено на платформах).
  */
+export async function deleteVideoStatsHandler(ctx: Context, videoId: string): Promise<void> {
+  const posts = await postRepository.findByVideoId(videoId);
+
+  for (const post of posts) {
+    await postRepository.deleteById(post.id);
+  }
+
+  await ctx.reply(
+    `🗑 Видео удалено из статистики (${posts.length} публикаций).`,
+    Markup.inlineKeyboard([[Markup.button.callback('« К списку видео', 'show_stats')]])
+  );
+}
 export async function videoStatsHandler(ctx: Context, videoId: string): Promise<void> {
   const video = await videoRepository.findById(videoId);
   if (!video) {
@@ -103,6 +114,9 @@ export async function videoStatsHandler(ctx: Context, videoId: string): Promise<
 
   await ctx.reply(
     message,
-    Markup.inlineKeyboard([[Markup.button.callback('« К списку видео', 'show_stats')]])
+    Markup.inlineKeyboard([
+      [Markup.button.callback('🗑 Удалить из статистики', `delete_video_stats:${videoId}`)],
+      [Markup.button.callback('« К списку видео', 'show_stats')],
+    ])
   );
 }
