@@ -54,14 +54,14 @@ export async function storageInfoHandler(ctx: Context): Promise<void> {
     }
 
     const text =
-      `📁 Папка загрузок: \`${VIDEO_UPLOAD_DIR}\`\n\n` +
+      `📁 Папка загрузок: ${VIDEO_UPLOAD_DIR}\n\n` +
       lines.join('\n') +
       `\n\n📦 Итого: ${formatSize(totalBytes)} (${lines.length} файл(ов))`;
 
     try {
-      await ctx.editMessageText(text, { parse_mode: 'Markdown', ...storageMenu });
+      await ctx.editMessageText(text, storageMenu);
     } catch {
-      await ctx.reply(text, { parse_mode: 'Markdown', ...storageMenu });
+      await ctx.reply(text, storageMenu);
     }
   } catch (err) {
     logger.error({ err }, 'Ошибка при чтении папки загрузок');
