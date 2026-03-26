@@ -59,7 +59,14 @@ export function createStatsWorker(redisUrl: string): Worker<StatsJobData> {
         await postRepository.updateStats(postId, stats);
 
         logger.info({ jobId: job.id, postId, platform: post.platform, stats }, 'Статистика успешно обновлена');
-      } catch (err) {
+      } catch (err: any) {
+        // Если видео удалено на платформе (404) — удаляем Post из DB
+        const status = err?.response?.status ?? err?.status;
+        if (status === 404) {
+          logger.info({ postId, platform: post.platform }, 'Видео удалено на платформе, удаляем Post из DB');
+          await postRepository.deleteById(postId);
+          return;
+        }
         // Логируем ошибку и продолжаем — не пробрасываем исключение
         // Requirements: 9.7, 12.3
         logger.error({ jobId: job.id, postId, platform: post.platform, err }, 'Ошибка сбора статистики, продолжаем');
