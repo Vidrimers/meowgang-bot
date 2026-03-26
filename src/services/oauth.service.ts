@@ -44,9 +44,9 @@ function getPlatformConfig(platform: Platform): PlatformConfig {
       return {
         clientId: process.env.INSTAGRAM_CLIENT_ID!,
         clientSecret: process.env.INSTAGRAM_CLIENT_SECRET!,
-        authUrl: 'https://api.instagram.com/oauth/authorize',
+        authUrl: 'https://www.instagram.com/oauth/authorize',
         tokenUrl: 'https://api.instagram.com/oauth/access_token',
-        scope: 'instagram_basic,instagram_content_publish',
+        scope: 'instagram_business_basic,instagram_business_content_publish',
       };
     case 'tiktok':
       return {
