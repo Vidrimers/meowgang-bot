@@ -147,6 +147,10 @@ SERVER_URL=https://твой-домен.com
 8. В Content Posting API → включи **Direct Post** (иначе видео будет загружаться как черновик)
 9. Scopes → добавь `video.upload`, `video.publish`, `user.info.stats`
 10. App review → заполни описание интеграции и загрузи демо-видео → Submit for review
+
+**Важно:** в описании для App Review **не пиши** что это личный бот или для внутреннего использования — TikTok отклоняет такие заявки. Позиционируй как публичный сервис для контент-мейкеров. Пример описания:
+> myMeowGang is a web platform that enables content creators to upload and publish videos to TikTok using the Content Posting API. Users authenticate via Login Kit, upload videos with metadata (title, description, tags), and publish directly to their TikTok accounts via video.upload and video.publish scopes.
+
 11. После одобрения (несколько рабочих дней) скопируй **Client Key** и **Client Secret** в `.env`
 
 **Важно:** без одобрения App Review публикация видео через API работать не будет.
