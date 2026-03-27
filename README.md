@@ -67,6 +67,20 @@ npm start
 | `SERVER_IP` | IP сервера для OAuth callback URL |
 | `PORT` | Порт HTTP-сервера |
 
+## Redis
+
+Redis используется как хранилище для очередей BullMQ (загрузка видео, сбор статистики).
+
+**На сервере (Ubuntu/Debian):**
+```bash
+sudo apt install redis-server
+sudo systemctl enable redis-server
+sudo systemctl start redis-server
+```
+В `.env`: `REDIS_URL=redis://localhost:6379`
+
+**Для локальной разработки** — рекомендуется [Upstash](https://upstash.com/) (бесплатный облачный Redis). После создания базы используй URL вида `rediss://...` (с двумя `s` — TLS обязателен для Upstash).
+
 ## OAuth настройка
 
 После запуска бота авторизуйте каждую платформу через команду `/start` → «Настройки аккаунтов».
