@@ -79,6 +79,9 @@ export function createStatsWorker(redisUrl: string): Worker<StatsJobData> {
         password: url.password ? decodeURIComponent(url.password) : undefined,
         tls: isTls ? {} : undefined,
       },
+      lockDuration: 120_000,
+      stalledInterval: 120_000,
+      maxStalledCount: 1,
     }
   );
 

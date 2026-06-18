@@ -25,9 +25,9 @@ export function startStatsCronJob(statsQueue: Queue<StatsJobData>): cron.Schedul
       }
 
       // Добавляем задачу в StatsQueue для каждого Post
-      const jobs = activePosts.map((post) =>
-        statsQueue.add('fetchStats', { postId: post.id })
-      );
+        const jobs = activePosts.map((post) =>
+          statsQueue.add('fetchStats', { postId: post.id }, { removeOnComplete: 100, removeOnFail: 500 })
+        );
 
       await Promise.all(jobs);
 
