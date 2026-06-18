@@ -43,10 +43,16 @@ export function createUploadWorker(redisUrl: string, bot: Telegraf): Worker<Uplo
         tags: video.tags,
       };
 
+      const completedPlatforms: string[] = (job.progress as string[]) ?? [];
       const errors: Array<{ platform: string; error: unknown }> = [];
 
-      // Загружаем на каждую выбранную платформу
+      // Загружаем на каждую выбранную платформу, пропуская уже успешные
       for (const platform of platforms) {
+        if (completedPlatforms.includes(platform)) {
+          logger.info({ jobId: job.id, videoId, platform }, 'Платформа уже загружена ранее, пропускаем');
+          continue;
+        }
+
         try {
           if (platform === 'youtube') {
             await youtubeService.uploadVideo(video.filePath, metadata, videoId, userId, bot);
@@ -57,6 +63,8 @@ export function createUploadWorker(redisUrl: string, bot: Telegraf): Worker<Uplo
             await tiktokService.uploadVideo(video.filePath, metadata, videoId, userId, bot);
           }
 
+          completedPlatforms.push(platform);
+          await job.updateProgress(completedPlatforms);
           logger.info({ jobId: job.id, videoId, platform }, 'Загрузка на платформу успешна');
         } catch (err) {
           logger.error({ jobId: job.id, videoId, platform, err }, 'Ошибка загрузки на платформу');
@@ -110,7 +118,7 @@ export function createUploadWorker(redisUrl: string, bot: Telegraf): Worker<Uplo
       try {
         await bot.telegram.sendMessage(
           Number(adminId),
-          `❌ Не удалось загрузить видео (ID: ${videoId}) после ${job.attemptsMade} попыток.\nОшибка: ${err.message}`
+          `❌ Не удалось загрузить видео (ID: ${videoId}) после ${job.attemptsMade} попыток.\nОшибка: ${err instanceof Error ? err.message : String(err)}`
         );
       } catch (notifyErr) {
         logger.error({ notifyErr }, 'Не удалось отправить уведомление Admin об ошибке');

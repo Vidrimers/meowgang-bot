@@ -27,7 +27,6 @@ import {
   videoUploadCancelHandler,
 } from './handlers/video.handler.js';
 import {
-  createUploadQueue,
   UPLOAD_JOB_OPTIONS,
 } from '../queue/upload.queue.js';
 import type { Queue } from 'bullmq';

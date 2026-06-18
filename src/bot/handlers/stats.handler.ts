@@ -3,7 +3,6 @@ import { Markup } from 'telegraf';
 import { userRepository } from '../../db/repositories/user.repository.js';
 import { videoRepository } from '../../db/repositories/video.repository.js';
 import { postRepository } from '../../db/repositories/post.repository.js';
-import type { Video } from '../../db/schema.js';
 import type { Post } from '../../db/schema.js';
 
 // Названия платформ для отображения

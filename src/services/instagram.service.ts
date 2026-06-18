@@ -102,6 +102,10 @@ export const instagramService = {
       attempts++;
     }
 
+    if (attempts >= 10) {
+      throw new Error(`Instagram не обработал видео за ${attempts} попыток (containerId: ${containerId})`);
+    }
+
     // Шаг 2: публикуем контейнер через /media_publish
     let mediaId: string;
     try {

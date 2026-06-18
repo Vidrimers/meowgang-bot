@@ -16,6 +16,7 @@ const ADMIN_TELEGRAM_ID = 123456789;
 vi.mock('axios', () => ({
   default: {
     post: vi.fn(),
+    get: vi.fn(),
   },
 }));
 
@@ -105,6 +106,17 @@ describe('Property 5: OAuth callback сохраняет все поля токе
               ...(platform === 'tiktok' ? { open_id: platformUserId } : { user_id: platformUserId }),
             },
           });
+
+          // Instagram: дополнительный мок для обмена на долгоживущий токен
+          if (platform === 'instagram') {
+            vi.mocked(axios.get).mockResolvedValueOnce({
+              data: {
+                access_token: accessToken,
+                token_type: 'bearer',
+                expires_in: 5184000,
+              },
+            });
+          }
 
           await oauthService.handleCallback(platform, 'test-code', ADMIN_TELEGRAM_ID);
 

@@ -15,6 +15,7 @@ const TEST_KEY = 'a'.repeat(64);
 vi.mock('axios', () => ({
   default: {
     post: vi.fn(),
+    get: vi.fn(),
   },
 }));
 
@@ -93,6 +94,8 @@ describe('Property 7: Истёкший токен автоматически о�
         expiredDateArb,
         async (platform, oldAccessToken, oldRefreshToken, newAccessToken, expiresAt) => {
           updatedTokens.length = 0;
+          vi.mocked(axios.post).mockReset();
+          vi.mocked(axios.get).mockReset();
 
           // Мок: аккаунт с истёкшим токеном
           vi.mocked(socialAccountRepository.findByUserAndPlatform).mockResolvedValueOnce({
@@ -106,13 +109,22 @@ describe('Property 7: Истёкший токен автоматически о�
           });
 
           // Мок: refresh возвращает новый токен
-          vi.mocked(axios.post).mockResolvedValueOnce({
-            data: {
-              access_token: newAccessToken,
-              refresh_token: oldRefreshToken,
-              expires_in: 3600,
-            },
-          });
+          if (platform === 'instagram') {
+            vi.mocked(axios.get).mockResolvedValueOnce({
+              data: {
+                access_token: newAccessToken,
+                expires_in: 3600,
+              },
+            });
+          } else {
+            vi.mocked(axios.post).mockResolvedValueOnce({
+              data: {
+                access_token: newAccessToken,
+                refresh_token: oldRefreshToken,
+                expires_in: 3600,
+              },
+            });
+          }
 
           const result = await oauthService.getValidToken(platform, 'user-id');
 

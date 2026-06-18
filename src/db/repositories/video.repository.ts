@@ -51,10 +51,11 @@ export const videoRepository = {
   async findRecentWithPostsByUserId(userId: string, limit = 10): Promise<Video[]> {
     // Получаем ID видео у которых есть посты
     const videoIdsWithPosts = await db
-      .selectDistinct({ videoId: posts.videoId })
+      .select({ videoId: posts.videoId })
       .from(posts)
       .innerJoin(videos, eq(posts.videoId, videos.id))
-      .where(eq(videos.userId, userId));
+      .where(eq(videos.userId, userId))
+      .groupBy(posts.videoId);
 
     if (videoIdsWithPosts.length === 0) return [];
 

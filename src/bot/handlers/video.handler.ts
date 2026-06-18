@@ -85,12 +85,25 @@ export function isFileSizeAllowed(sizeBytes: number): boolean {
 function downloadFile(url: string, destPath: string): Promise<void> {
   return new Promise((resolve, reject) => {
     const proto = url.startsWith('https') ? https : http;
-    const file = fs.createWriteStream(destPath);
     proto.get(url, (res) => {
+      if (res.statusCode && res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+        res.resume();
+        downloadFile(res.headers.location, destPath).then(resolve, reject);
+        return;
+      }
+      if (!res.statusCode || res.statusCode >= 400) {
+        res.resume();
+        reject(new Error(`HTTP ${res.statusCode}`));
+        return;
+      }
+      const file = fs.createWriteStream(destPath);
       res.pipe(file);
       file.on('finish', () => file.close(() => resolve()));
+      file.on('error', (err) => {
+        file.close(() => fs.unlink(destPath, () => undefined));
+        reject(err);
+      });
     }).on('error', (err) => {
-      fs.unlink(destPath, () => undefined);
       reject(err);
     });
   });
@@ -104,8 +117,12 @@ function downloadFile(url: string, destPath: string): Promise<void> {
  * Requirements: 3.1, 3.2, 3.6, 3.7
  */
 export async function videoReceiveHandler(ctx: Context): Promise<void> {
-  const msg = ctx.message as any;
-  const video = msg?.video ?? msg?.document;
+  const msg = ctx.message;
+  if (!msg || !('video' in msg || 'document' in msg)) {
+    await ctx.reply('Пожалуйста, отправьте видеофайл.');
+    return;
+  }
+  const video = 'video' in msg ? msg.video : msg.document;
 
   if (!video) {
     await ctx.reply('Пожалуйста, отправьте видеофайл.');
@@ -183,7 +200,7 @@ export async function videoReceiveHandler(ctx: Context): Promise<void> {
 export async function videoFsmTextHandler(ctx: Context): Promise<boolean> {
   const userId = ctx.from!.id;
   const state = getFsmState(userId);
-  const text = (ctx.message as any)?.text as string | undefined;
+  const text = ctx.message && 'text' in ctx.message ? ctx.message.text : undefined;
 
   if (!text) return false;
 
