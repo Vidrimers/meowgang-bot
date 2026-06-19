@@ -71,15 +71,39 @@ npm start
 
 Redis используется как хранилище для очередей BullMQ (загрузка видео, сбор статистики).
 
-**На сервере (Ubuntu/Debian):**
+### На сервере (Ubuntu/Debian)
+
 ```bash
 sudo apt install redis-server
 sudo systemctl enable redis-server
 sudo systemctl start redis-server
 ```
+
 В `.env`: `REDIS_URL=redis://localhost:6379`
 
-**Для локальной разработки** — рекомендуется [Upstash](https://upstash.com/) (бесплатный облачный Redis). После создания базы используй URL вида `rediss://...` (с двумя `s` — TLS обязателен для Upstash).
+### Локальная разработка (Docker)
+
+**Windows:** установи [Docker Desktop](https://www.docker.com/products/docker-desktop/), запусти его и выполни:
+
+```bash
+docker run -d --name redis-local -p 6379:6379 redis
+```
+
+В `.env` для локальной разработки: `REDIS_URL=redis://localhost:6379`
+
+**Управление контейнером:**
+```bash
+# Остановить
+docker stop redis-local
+
+# Запустить заново
+docker start redis-local
+
+# Удалить
+docker rm -f redis-local
+```
+
+**Важно:** Upstash (бесплатный облачный Redis) имеет лимит 500K запросов — для локальной разработки лучше использовать Docker.
 
 ## OAuth настройка
 
@@ -168,6 +192,23 @@ SERVER_URL=https://твой-домен.com
 11. После одобрения (несколько рабочих дней) скопируй **Client Key** и **Client Secret** в `.env`
 
 **Важно:** без одобрения App Review публикация видео через API работать не будет.
+
+#### Требования к App Review
+
+TikTok проверяет:
+
+1. **App Name совпадает с сайтом** — название в Developer Portal должно точно совпадать с тем что написано на главной странице сайта
+2. **Terms of Service и Privacy Policy** — должны быть видны ссылки на главной странице сайта (не только по прямому URL)
+3. **Демо-видео** — должно показывать:
+   - Главную страницу сайта с ссылками на ToS и Privacy Policy
+   - OAuth поток авторизации со всеми scope
+   - Загрузку и публикацию видео
+   - Использование **sandbox** TikTok (не production)
+4. **Описание интеграции** — чётко объясняет какие scope используются и зачем
+
+**Полезные ссылки:**
+- Privacy Policy URL: `https://твой-домен.com/auth/privacy`
+- Terms of Service URL: `https://твой-домен.com/auth/terms`
 
 ## Тесты
 
